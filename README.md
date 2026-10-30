@@ -11,19 +11,20 @@
 
 ## 部署
 
-源码和文档位于本仓库，Docker 镜像、PI0.5 基座及 tokenizer 随 [v20261030 完整交付包](https://github.com/panny-dot/piper-pi05-docker/releases/tag/v20261030) 一并提供。数据集另行准备。
+源码和文档位于本仓库，Docker 镜像通过 [v20261030 镜像附件](https://github.com/panny-dot/piper-pi05-docker/releases/tag/v20261030) 提供。模型权重、tokenizer 和数据集另行准备，不在本次 GitHub 发布中上传。
 
-完整包以分卷附件提供。使用具有仓库访问权限的 GitHub 账号登录 `gh` 后，执行：
+镜像以 gzip 分卷附件提供。使用具有仓库访问权限的 GitHub 账号登录 `gh` 后，执行：
 
 ```bash
 gh release download v20261030 \
   --repo panny-dot/piper-pi05-docker \
-  --dir ./release-20261030
+  --dir ./image-20261030
 
-bash ./release-20261030/RESTORE.sh /data
+bash ./image-20261030/RESTORE.sh /data/pi05-image
+docker load -i /data/pi05-image/piper-pi05-full_20261030.tar
 ```
 
-其中 `/data` 是还原目标目录的示例，需按目标机器修改并确保可写、空间充足。还原后得到完整的 `PI05全参数微调_20261030/` 目录，包含镜像、源码、基座、tokenizer 和交接说明。还原脚本会校验下载附件与还原文件的完整性。
+其中 `/data/pi05-image` 为示例还原目录，需按目标机器修改并确保可写、空间充足。脚本会校验下载分卷并还原 Docker 镜像归档，不启动训练。
 
 也可在 Release 页面下载全部附件，放在同一文件夹后执行 `RESTORE.sh`。分卷必须全部下载，不能只下载其中一个。
 
