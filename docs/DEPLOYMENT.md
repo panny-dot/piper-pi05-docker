@@ -1,11 +1,11 @@
-# PI0.5 全参数微调环境迁移交接说明
+# PI0.5 Docker 镜像部署说明
 
 交付日期：2026 年 10 月 30 日  
 镜像版本：`piper-pi05-full:20261030`
 
 ## 一、交付内容
 
-本交付包用于迁移 PI0.5 全参数微调环境，包含 Docker 镜像、配套启动与构建源码、PI0.5 基座及 tokenizer。数据集由接收方另行准备。
+本仓库提供配套启动与构建源码，GitHub Release 提供 Docker 镜像。模型权重、tokenizer 和数据集另行准备，本次 GitHub 发布不包含这些训练输入。
 
 训练框架采用 [Hugging Face LeRobot](https://github.com/huggingface/lerobot) 的 PyTorch PI0.5 实现。基座来源为 [`lerobot/pi05_base`](https://huggingface.co/lerobot/pi05_base)，固定版本为 `22c30e5b34f9e7ab738b1b34fc2fc5ecfe2d28f0`。配套 Docker 文件及 `run.sh` 为本项目新增的封装与启动文件。
 
@@ -24,10 +24,9 @@
 ## 二、交付目录
 
 ```text
-PI05全参数微调_20261030/
+piper-pi05-docker/
 ├── README.md                              # 本交接说明
-├── SHA256SUMS                             # 交付文件完整性校验清单
-├── piper-pi05-full_20261030.tar             # Docker 镜像
+├── piper-pi05-full_20261030.tar             # 从 Release 下载还原
 ├── source/                                # 配套启动与构建源码
 │   ├── run.sh                             # 宿主机训练启动入口
 │   ├── scripts/run_container.py            # Docker 调用与目录挂载
@@ -41,12 +40,12 @@ PI05全参数微调_20261030/
 │   ├── evidence/                          # 源码清单与依赖版本记录
 │   └── LICENSE.lerobot                     # LeRobot 许可证
 ├── models/
-│   └── pi05_base/                         # PI0.5 原始基座及配置
+│   └── pi05_base/                         # 自行准备 PI0.5 基座及配置
 └── assets/
-    └── tokenizer/                         # 本地 tokenizer
+    └── tokenizer/                         # 自行准备 tokenizer
 ```
 
-镜像归档约 8.74GB，基座权重约 14.47GB，交付文件合计约 23.23GB。部署时需为镜像导入、数据集、缓存和训练检查点另行预留空间。
+镜像归档约 8.74GB。部署时需为镜像下载、还原、Docker 导入、模型、数据集、缓存和训练检查点预留空间。
 
 ## 三、目标机器要求
 
@@ -62,21 +61,26 @@ PI05全参数微调_20261030/
 
 ### 1. 进入交付目录
 
-将交付文件夹完整复制到目标机器，进入其实际存放目录。例如：
+将仓库克隆或下载到目标机器，进入仓库根目录。例如：
 
 ```bash
-cd '/data/PI05全参数微调_20261030'
+cd '/data/piper-pi05-docker'
 ```
 
-其中 `/data/PI05全参数微调_20261030` 为示例路径，按实际位置替换。后续命令均在交付根目录执行。
+其中 `/data/piper-pi05-docker` 为示例路径，按实际位置替换。后续命令均在仓库根目录执行。
 
-### 2. 校验交付文件
+### 2. 下载并还原镜像
+
+使用具有仓库访问权限的 GitHub 账号登录 `gh` 后执行：
 
 ```bash
-sha256sum -c SHA256SUMS
+gh release download v20261030 \
+  --repo panny-dot/piper-pi05-docker \
+  --dir ./image-20261030
+bash ./image-20261030/RESTORE.sh "$PWD"
 ```
 
-全部文件显示 `OK` 后，继续导入。
+下载全部 Release 附件后，还原脚本会校验分卷及完整镜像，生成仓库根目录下的 `piper-pi05-full_20261030.tar`。
 
 ### 3. 导入镜像
 
@@ -90,11 +94,11 @@ docker load -i piper-pi05-full_20261030.tar
 Loaded image: piper-pi05-full:20261030
 ```
 
-此步骤将训练软件环境导入 Docker。宿主机上的启动脚本、模型和 tokenizer 由交付包提供，导入镜像不会生成这些文件。
+此步骤将训练软件环境导入 Docker。宿主机上的启动脚本由仓库提供；模型和 tokenizer 另行准备。导入镜像不会生成这些宿主机文件。
 
 ## 五、准备训练输入
 
-基座及 tokenizer 已分别放在 `models/pi05_base/` 和 `assets/tokenizer/`，迁移时保留整个目录结构。
+将准备好的完整基座及 tokenizer 分别放入仓库根目录下的 `models/pi05_base/` 和 `assets/tokenizer/`。也可在训练命令中改用其他实际存放路径。
 
 数据集需另行准备为完整 LeRobot 格式，保留 `meta/`、`data/`、`videos/` 的相对结构。本入口面向 Piper 双臂数据：
 
@@ -109,7 +113,7 @@ Loaded image: piper-pi05-full:20261030
 
 ## 六、启动训练
 
-仍在交付根目录执行，先设置数据集和输出目录。下面两项示例路径需按目标机器修改：
+仍在仓库根目录执行，先设置数据集和输出目录。下面两项示例路径需按目标机器修改：
 
 ```bash
 DATA='/data/piper_box_master_hold_30ms_full_20261014'
@@ -130,7 +134,7 @@ bash ./source/run.sh train \
   --workers 4
 ```
 
-上述命令会直接从交付的原始基座开始全参数微调。30000 步、batch size 为 1、每 5000 步保存一次均为示例设置，需按本轮训练计划调整；训练步数不代表效果保证。
+上述命令会直接从指定的原始基座开始全参数微调。30000 步、batch size 为 1、每 5000 步保存一次均为示例设置，需按本轮训练计划调整；训练步数不代表效果保证。
 
 `run.sh` 负责调用 Docker、使用 GPU 并建立目录挂载。它依赖同目录下的 `scripts/run_container.py`，交接时应保留完整 `source/` 目录。
 
