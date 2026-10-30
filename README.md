@@ -11,7 +11,21 @@
 
 ## 部署
 
-本仓库提供源码和文档。Docker 镜像、PI0.5 基座、tokenizer 与数据集通过离线交付或其他存储单独获取。
+源码和文档位于本仓库，Docker 镜像、PI0.5 基座及 tokenizer 随 [v20261030 完整交付包](https://github.com/panny-dot/piper-pi05-docker/releases/tag/v20261030) 一并提供。数据集另行准备。
+
+完整包以分卷附件提供。使用具有仓库访问权限的 GitHub 账号登录 `gh` 后，执行：
+
+```bash
+gh release download v20261030 \
+  --repo panny-dot/piper-pi05-docker \
+  --dir ./release-20261030
+
+bash ./release-20261030/RESTORE.sh /data
+```
+
+其中 `/data` 是还原目标目录的示例，需按目标机器修改并确保可写、空间充足。还原后得到完整的 `PI05全参数微调_20261030/` 目录，包含镜像、源码、基座、tokenizer 和交接说明。还原脚本会校验下载附件与还原文件的完整性。
+
+也可在 Release 页面下载全部附件，放在同一文件夹后执行 `RESTORE.sh`。分卷必须全部下载，不能只下载其中一个。
 
 使用已构建镜像时，按 `docs/DEPLOYMENT.md` 准备完整交付目录，导入 `piper-pi05-full:20261030` 后，通过包内 `source/run.sh train` 启动训练。
 
