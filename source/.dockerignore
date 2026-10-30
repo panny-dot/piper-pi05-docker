@@ -1,0 +1,15 @@
+*
+!Dockerfile
+!Dockerfile.builder
+!constraints.txt
+!requirements-torch.txt
+!vendor/
+!vendor/lerobot-0.6.1-source.tar.gz
+!container/
+!container/**
+!scripts/
+!scripts/builder-entry.sh
+!evidence/
+!evidence/source_manifest.json
+**/__pycache__
+**/*.pyc

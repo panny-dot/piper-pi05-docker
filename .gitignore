@@ -1,0 +1,27 @@
+# Offline assets and training outputs
+/models/
+/assets/tokenizer/
+/data/
+/datasets/
+/outputs/
+/pi05-runs/
+/cache/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.tar
+*.tar.gz
+!source/vendor/lerobot-0.6.1-source.tar.gz
+*.zip
+*.incomplete
+# Local environment and credentials
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+.cache/
+*.log
+.DS_Store
